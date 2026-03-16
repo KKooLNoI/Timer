@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Task Countdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0c0f;
+  --s1: #141418;
+  --s2: #1b1b21;
+  --s3: #222229;
+  --b0: rgba(255,255,255,0.05);
+  --b1: rgba(255,255,255,0.09);
+  --b2: rgba(255,255,255,0.16);
+  --text: #eeede6;
+  --muted: rgba(238,237,230,0.42);
+  --dim: rgba(238,237,230,0.22);
+  --lime: #c8f542;
+  --lime-dim: rgba(200,245,66,0.10);
+  --lime-text: #182400;
+  --red: #ff5a5a;
+  --red-dim: rgba(255,90,90,0.10);
+  --amber: #ffb830;
+  --amber-dim: rgba(255,184,48,0.10);
+  --mono: 'DM Mono', monospace;
+  --sans: 'Sarabun', sans-serif;
+  --r: 10px;
+  --r-sm: 7px;
+}
+
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 2rem 1rem 5rem;
+}
+
+.container { max-width: 640px; margin: 0 auto; }
+
+.header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2rem; padding-bottom: 1.25rem;
+  border-bottom: 0.5px solid var(--b1);
+}
+.logo { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.04em; }
+.logo em { color: var(--lime); font-style: normal; }
+.header-clock { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+
+/* Add form */
+.add-card {
+  background: var(--s1); border: 0.5px solid var(--b1);
+  border-radius: var(--r); padding: 1.25rem; margin-bottom: 1.5rem;
+}
+.add-card-title {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+.form-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.form-row:last-child { margin-bottom: 0; }
+
+input[type="text"], input[type="date"], input[type="time"] {
+  height: 38px; padding: 0 12px;
+  background: var(--s2); border: 0.5px solid var(--b1);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: var(--sans); font-size: 14px; outline: none;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus {
+  border-color: var(--lime);
+}
+input::placeholder { color: var(--dim); }
+input[type="date"], input[type="time"] { font-family: var(--mono); font-size: 13px; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+.btn {
+  height: 38px; padding: 0 16px; border-radius: var(--r-sm);
+  border: 0.5px solid var(--b1); background: var(--s2); color: var(--text);
+  font-family: var(--sans); font-size: 13px; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn:hover { border-color: var(--b2); background: var(--s3); }
+.btn-lime {
+  background: var(--lime); color: var(--lime-text);
+  border-color: var(--lime); font-weight: 600;
+}
+.btn-lime:hover { background: #d5ff55; border-color: #d5ff55; }
+
+/* Summary */
+.summary-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.sum-box {
+  flex: 1; background: var(--s1); border: 0.5px solid var(--b0);
+  border-radius: var(--r-sm); padding: 10px 12px;
+}
+.sum-val { font-family: var(--mono); font-size: 20px; font-weight: 500; }
+.sum-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.sum-box.c-lime .sum-val { color: var(--lime); }
+.sum-box.c-amber .sum-val { color: var(--amber); }
+.sum-box.c-red .sum-val { color: var(--red); }
+
+/* Filter */
+.filter-bar {
+  display: flex; gap: 6px; margin-bottom: 1.25rem;
+  flex-wrap: wrap; align-items: center;
+}
+.filter-btn {
+  height: 30px; padding: 0 12px; border-radius: 20px;
+  border: 0.5px solid var(--b1); background: none; color: var(--muted);
+  font-family: var(--sans); font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--b2); color: var(--text); }
+.filter-btn.active { border-color: var(--lime); color: var(--lime); background: var(--lime-dim); }
+.filter-spacer { flex: 1; }
+.total-label { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+
+/* Task list */
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* Task card */
+.task-card {
+  background: var(--s1); border: 0.5px solid var(--b1);
+  border-radius: var(--r); overflow: hidden;
+  transition: border-color 0.2s, opacity 0.3s;
+  animation: fadeUp 0.22s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.task-card:hover { border-color: var(--b2); }
+.task-card.done { opacity: 0.42; }
+
+.accent-bar { height: 2px; width: 100%; }
+.status-future .accent-bar { background: var(--lime); }
+.status-soon   .accent-bar { background: var(--amber); }
+.status-overdue .accent-bar { background: var(--red); }
+.status-done   .accent-bar { background: var(--b1); }
+
+.task-inner { padding: 14px 14px 12px; }
+
+.task-top {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
+}
+.task-check {
+  width: 20px; height: 20px; border-radius: 6px;
+  border: 0.5px solid var(--b2); background: none;
+  cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; transition: all 0.15s;
+}
+.task-check:hover { border-color: var(--lime); }
+.task-check.checked { background: var(--lime); border-color: var(--lime); color: var(--lime-text); }
+.task-name { flex: 1; font-size: 15px; line-height: 1.4; word-break: break-word; }
+.task-card.done .task-name { text-decoration: line-through; color: var(--muted); }
+
+.task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.task-card:hover .task-actions { opacity: 1; }
+.action-btn {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: none; background: none; color: var(--muted);
+  font-size: 13px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.15s;
+}
+.action-btn:hover { background: var(--s3); color: var(--text); }
+.action-btn.del:hover { background: var(--red-dim); color: var(--red); }
+
+/* Countdown display */
+.cd-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.cd-block { display: flex; align-items: baseline; gap: 3px; }
+.cd-num {
+  font-family: var(--mono); font-size: 28px; font-weight: 400;
+  letter-spacing: -0.02em; line-height: 1;
+}
+.cd-unit { font-size: 11px; color: var(--muted); }
+.cd-sep { font-family: var(--mono); font-size: 22px; color: var(--b2); padding: 0 3px; }
+.color-future .cd-num { color: var(--text); }
+.color-soon   .cd-num { color: var(--amber); }
+.color-overdue .cd-num { color: var(--red); }
+.color-done   .cd-num { color: var(--muted); }
+
+/* Meta tags */
+.task-meta { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+.meta-tag {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  background: var(--s3); border: 0.5px solid var(--b0);
+  padding: 3px 9px; border-radius: 20px; display: flex; align-items: center; gap: 5px;
+}
+.meta-tag.lime { background: var(--lime-dim); color: var(--lime); border-color: rgba(200,245,66,0.15); }
+.meta-tag.red  { background: var(--red-dim);  color: var(--red);  border-color: rgba(255,90,90,0.15); }
+.meta-tag.amber { background: var(--amber-dim); color: var(--amber); border-color: rgba(255,184,48,0.15); }
+.dot-pulse {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* Inline edit */
+.edit-row {
+  display: flex; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap;
+}
+.edit-row input[type="text"]  { flex: 1; min-width: 150px; height: 34px; font-size: 13px; }
+.edit-row input[type="date"]  { flex: 1; min-width: 130px; height: 34px; }
+.edit-row input[type="time"]  { width: 100px; height: 34px; }
+.btn-sm { height: 34px; padding: 0 14px; font-size: 12px; }
+
+/* Empty */
+.empty { text-align: center; padding: 3.5rem 1rem; color: var(--muted); font-size: 14px; line-height: 2; }
+
+@media (max-width: 480px) {
+  body { padding: 1.25rem 0.75rem 4rem; }
+  .cd-num { font-size: 22px; }
+  .summary-bar { flex-wrap: wrap; }
+  .sum-box { min-width: calc(50% - 4px); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">TASK<em>·</em>COUNTDOWN</div>
+    <div class="header-clock" id="clock">--:--:--</div>
+  </div>
+
+  <!-- Add form -->
+  <div class="add-card">
+    <div class="add-card-title">เพิ่ม Task ใหม่</div>
+    <div class="form-row">
+      <input type="text" id="new-name" placeholder="ชื่องาน / กิจกรรม..." style="flex:1;" onkeydown="if(event.key==='Enter')addTask()" />
+    </div>
+    <div class="form-row">
+      <input type="date" id="new-date" style="flex:1;min-width:140px;" />
+      <input type="time" id="new-time" value="09:00" style="width:110px;" />
+      <button class="btn btn-lime" onclick="addTask()">+ เพิ่ม</button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-bar" id="summary-bar"></div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+    <button class="filter-btn" onclick="setFilter('upcoming',this)">ยังไม่ถึง</button>
+    <button class="filter-btn" onclick="setFilter('soon',this)">ใกล้ครบ</button>
+    <button class="filter-btn" onclick="setFilter('overdue',this)">เลยกำหนด</button>
+    <button class="filter-btn" onclick="setFilter('done',this)">เสร็จแล้ว</button>
+    <span class="filter-spacer"></span>
+    <span class="total-label" id="total-label"></span>
+  </div>
+
+  <!-- Task list -->
+  <div class="task-list" id="task-list"></div>
+
+</div>
+<script>
+let tasks   = JSON.parse(localStorage.getItem('tcd3') || '[]');
+let filter  = 'all';
+let editId  = null;
+
+const save  = () => localStorage.setItem('tcd3', JSON.stringify(tasks));
+const pad   = n  => String(n).padStart(2,'0');
+const $     = id => document.getElementById(id);
+const esc   = s  => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// Clock
+setInterval(() => {
+  const n = new Date();
+  $('clock').textContent = pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+}, 1000);
+
+// Init today
+(function() {
+  $('new-date').value = new Date().toISOString().slice(0,10);
+})();
+
+function getStatus(t) {
+  if (t.done) return 'done';
+  const diff = new Date(t.date+'T'+t.time+':00') - Date.now();
+  if (diff <= 0) return 'overdue';
+  if (diff < 86400000) return 'soon';
+  return 'future';
+}
+
+function buildCd(t) {
+  const diff   = new Date(t.date+'T'+t.time+':00') - Date.now();
+  const abs    = Math.floor(Math.abs(diff)/1000);
+  const days   = Math.floor(abs/86400);
+  const hrs    = Math.floor((abs%86400)/3600);
+  const mins   = Math.floor((abs%3600)/60);
+  const secs   = abs%60;
+  const status = getStatus(t);
+  const cc     = t.done ? 'color-done' : 'color-'+status;
+
+  const blk = (n,u) => `<span class="cd-block"><span class="cd-num">${n}</span><span class="cd-unit">${u}</span></span>`;
+  const sep = `<span class="cd-sep">:</span>`;
+
+  let inner;
+  if (days >= 1) {
+    inner = blk(days,'วัน') + sep + blk(pad(hrs),'ชม.') + sep + blk(pad(mins),'น.');
+  } else {
+    inner = blk(pad(hrs),'ชม.') + sep + blk(pad(mins),'น.') + sep + blk(pad(secs),'ว.');
+  }
+  return `<div class="cd-row ${cc}">${inner}</div>`;
+}
+
+function buildMeta(t) {
+  const status = getStatus(t);
+  if (t.done) return `<span class="meta-tag">✓ เสร็จแล้ว</span>`;
+  const target  = new Date(t.date+'T'+t.time+':00');
+  const dateStr = target.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  const timeStr = pad(target.getHours())+':'+pad(target.getMinutes())+' น.';
+
+  let badge = '';
+  if (status === 'overdue') badge = `<span class="meta-tag red">⚠ เลยกำหนด</span>`;
+  else if (status === 'soon') badge = `<span class="meta-tag amber"><span class="dot-pulse"></span>ใกล้ครบ</span>`;
+  else badge = `<span class="meta-tag lime"><span class="dot-pulse"></span>กำลังนับ</span>`;
+
+  return badge + `<span class="meta-tag">${dateStr} ${timeStr}</span>`;
+}
+
+function render() {
+  // summary counts
+  const cnt = {future:0,soon:0,overdue:0,done:0};
+  tasks.forEach(t => cnt[getStatus(t)]++);
+
+  $('summary-bar').innerHTML = `
+    <div class="sum-box"><div class="sum-val">${tasks.length}</div><div class="sum-lbl">ทั้งหมด</div></div>
+    <div class="sum-box c-lime"><div class="sum-val">${cnt.future+cnt.soon}</div><div class="sum-lbl">ยังไม่ถึง</div></div>
+    <div class="sum-box c-amber"><div class="sum-val">${cnt.soon}</div><div class="sum-lbl">ใกล้ครบ</div></div>
+    <div class="sum-box c-red"><div class="sum-val">${cnt.overdue}</div><div class="sum-lbl">เลยกำหนด</div></div>
+  `;
+
+  const list = tasks.filter(t => {
+    const s = getStatus(t);
+    if (filter === 'all')      return true;
+    if (filter === 'upcoming') return s === 'future';
+    if (filter === 'soon')     return s === 'soon';
+    if (filter === 'overdue')  return s === 'overdue';
+    if (filter === 'done')     return s === 'done';
+    return true;
+  });
+
+  $('total-label').textContent = list.length + ' รายการ';
+
+  const el = $('task-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">ไม่มีงานในหมวดนี้</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const status  = getStatus(t);
+    const editing = editId === t.id;
+    return `
+<div class="task-card status-${status} ${t.done?'done':''}" id="card-${t.id}">
+  <div class="accent-bar"></div>
+  <div class="task-inner">
+
+    <div class="task-top">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</div>
+      <div class="task-name">${esc(t.name)}</div>
+      <div class="task-actions">
+        <button class="action-btn" onclick="toggleEdit(${t.id})" title="แก้ไข">✎</button>
+        <button class="action-btn del" onclick="del(${t.id})" title="ลบ">✕</button>
+      </div>
+    </div>
+
+    ${editing ? `
+    <div class="edit-row">
+      <input type="text"  id="en-${t.id}" value="${esc(t.name)}" />
+      <input type="date"  id="ed-${t.id}" value="${t.date}" />
+      <input type="time"  id="et-${t.id}" value="${t.time}" />
+      <button class="btn btn-lime btn-sm" onclick="saveEdit(${t.id})">บันทึก</button>
+    </div>` : ''}
+
+    <div id="cd-${t.id}">${buildCd(t)}</div>
+    <div class="task-meta" id="mt-${t.id}">${buildMeta(t)}</div>
+
+  </div>
+</div>`;
+  }).join('');
+}
+
+// Live tick — only update countdown numbers & meta, no full re-render
+setInterval(() => {
+  tasks.forEach(t => {
+    const cdEl = $('cd-'+t.id);
+    const mtEl = $('mt-'+t.id);
+    const card = $('card-'+t.id);
+    if (!cdEl) return;
+    cdEl.innerHTML = buildCd(t);
+    if (mtEl) mtEl.innerHTML = buildMeta(t);
+    if (card) {
+      const s = getStatus(t);
+      card.className = `task-card status-${s} ${t.done?'done':''}`;
+    }
+  });
+  // update summary counts quietly
+  const cnt = {future:0,soon:0,overdue:0,done:0};
+  tasks.forEach(t => cnt[getStatus(t)]++);
+  const sb = $('summary-bar');
+  if (sb) {
+    const vals = sb.querySelectorAll('.sum-val');
+    if (vals[0]) vals[0].textContent = tasks.length;
+    if (vals[1]) vals[1].textContent = cnt.future+cnt.soon;
+    if (vals[2]) vals[2].textContent = cnt.soon;
+    if (vals[3]) vals[3].textContent = cnt.overdue;
+  }
+}, 1000);
+
+function addTask() {
+  const name = $('new-name').value.trim();
+  const date = $('new-date').value;
+  const time = $('new-time').value || '09:00';
+  if (!name || !date) { $('new-name').focus(); return; }
+  tasks.unshift({ id: Date.now(), name, date, time, done: false });
+  $('new-name').value = '';
+  $('new-date').value = new Date().toISOString().slice(0,10);
+  save(); render();
+}
+
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function toggleDone(id) {
+  const t = tasks.find(x => x.id===id);
+  if (t) { t.done = !t.done; save(); render(); }
+}
+
+function del(id) {
+  tasks = tasks.filter(x => x.id!==id);
+  save(); render();
+}
+
+function toggleEdit(id) {
+  editId = editId===id ? null : id;
+  render();
+  if (editId) { const el=$('en-'+id); if(el){el.focus();el.select();} }
+}
+
+function saveEdit(id) {
+  const t = tasks.find(x => x.id===id);
+  if (!t) return;
+  const n = $('en-'+id).value.trim();
+  const d = $('ed-'+id).value;
+  const ti = $('et-'+id).value;
+  if (n)  t.name = n;
+  if (d)  t.date = d;
+  if (ti) t.time = ti;
+  editId = null;
+  save(); render();
+}
+
+render();
+</script>
+</body>
+</html>
