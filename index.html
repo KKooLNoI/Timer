@@ -274,6 +274,30 @@ textarea { padding: 10px 12px; resize: vertical; }
 .cal-event-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
 /* ────────────────────────────────────────
+   PAGE: POMODORO
+─────────────────────────────────────────*/
+.pomo-mode-btn {
+  height: 34px; padding: 0 18px; border-radius: 20px;
+  border: 0.5px solid var(--b1); background: none; color: var(--muted);
+  font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s;
+}
+.pomo-mode-btn:hover { border-color: var(--b2); color: var(--text); }
+.pomo-mode-btn.active { border-color: var(--lime); color: var(--lime); background: var(--lime-dim); }
+.pomo-stat-box {
+  background: var(--s2); border-radius: var(--r-sm);
+  padding: 10px 16px; min-width: 80px;
+}
+.pomo-stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); }
+.pomo-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.pomo-log-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--r-sm);
+  background: var(--s2); margin-bottom: 5px; font-size: 13px;
+  animation: fadeUp 0.2s ease;
+}
+.pomo-log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ────────────────────────────────────────
    PAGE: TO-DO
 ─────────────────────────────────────────*/
 .todo-sections { display: flex; flex-direction: column; gap: 1rem; }
@@ -356,6 +380,7 @@ textarea { padding: 10px 12px; resize: vertical; }
       <button class="nav-tab active" onclick="showPage('countdown')">Countdown</button>
       <button class="nav-tab" onclick="showPage('calendar')">ปฏิทิน</button>
       <button class="nav-tab" onclick="showPage('todo')">To-Do</button>
+      <button class="nav-tab" onclick="showPage('pomodoro')">Pomodoro</button>
     </div>
     <div class="header-right">
       <div class="header-clock" id="clock">--:--:--</div>
@@ -411,7 +436,79 @@ textarea { padding: 10px 12px; resize: vertical; }
     </div>
   </div>
 
-  <!-- ── TODO PAGE ── -->
+  <!-- ── POMODORO PAGE ── -->
+  <div class="page" id="page-pomodoro">
+
+    <div class="card" style="text-align:center; padding: 2rem 1.5rem;">
+
+      <!-- Mode selector -->
+      <div style="display:flex; justify-content:center; gap:8px; margin-bottom:2rem; flex-wrap:wrap;">
+        <button class="pomo-mode-btn active" id="pm-25" onclick="setPomoMode('focus25')">25 / 5</button>
+        <button class="pomo-mode-btn" id="pm-50" onclick="setPomoMode('focus50')">50 / 10</button>
+        <button class="pomo-mode-btn" id="pm-custom" onclick="setPomoMode('custom')">กำหนดเอง</button>
+      </div>
+
+      <!-- Custom inputs -->
+      <div id="pomo-custom-row" style="display:none; justify-content:center; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:12px;color:var(--muted);">โฟกัส</span>
+          <input type="number" id="custom-focus" value="25" min="1" max="120" style="width:64px;height:34px;text-align:center;" />
+          <span style="font-size:12px;color:var(--muted);">น.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:12px;color:var(--muted);">พัก</span>
+          <input type="number" id="custom-break" value="5" min="1" max="60" style="width:64px;height:34px;text-align:center;" />
+          <span style="font-size:12px;color:var(--muted);">น.</span>
+        </div>
+        <button class="btn btn-sm" onclick="applyCustom()">ตั้งค่า</button>
+      </div>
+
+      <!-- Phase label -->
+      <div id="pomo-phase-label" style="font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">โฟกัส</div>
+
+      <!-- Ring timer -->
+      <div style="position:relative;display:inline-block;margin-bottom:1.5rem;">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="88" fill="none" stroke="var(--b1)" stroke-width="8"/>
+          <circle id="pomo-ring" cx="100" cy="100" r="88" fill="none"
+            stroke="var(--lime)" stroke-width="8"
+            stroke-linecap="round"
+            stroke-dasharray="553"
+            stroke-dashoffset="0"
+            transform="rotate(-90 100 100)"
+            style="transition:stroke-dashoffset 0.8s ease, stroke 0.4s;"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="pomo-time" style="font-family:var(--mono);font-size:44px;font-weight:400;letter-spacing:-0.02em;line-height:1;">25:00</div>
+          <div id="pomo-round-label" style="font-size:12px;color:var(--muted);margin-top:4px;">รอบที่ 1</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:1.5rem;">
+        <button class="btn" onclick="pomoReset()" style="width:44px;height:44px;padding:0;font-size:16px;">↺</button>
+        <button id="pomo-play-btn" onclick="pomoToggle()" style="width:80px;height:44px;border-radius:22px;border:none;background:var(--lime);color:var(--lime-text);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;transition:background 0.15s;">เริ่ม</button>
+        <button class="btn" onclick="pomoSkip()" style="width:44px;height:44px;padding:0;font-size:16px;">⏭</button>
+      </div>
+
+      <!-- Stats row -->
+      <div style="display:flex;justify-content:center;gap:12px;">
+        <div class="pomo-stat-box"><div id="ps-rounds" class="pomo-stat-val">0</div><div class="pomo-stat-lbl">รอบโฟกัส</div></div>
+        <div class="pomo-stat-box"><div id="ps-focus" class="pomo-stat-val">0</div><div class="pomo-stat-lbl">นาทีโฟกัส</div></div>
+        <div class="pomo-stat-box"><div id="ps-streak" class="pomo-stat-val">0</div><div class="pomo-stat-lbl">ติดต่อกัน</div></div>
+      </div>
+    </div>
+
+    <!-- Session log -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="section-title" style="margin:0;">ประวัติวันนี้</div>
+        <button class="btn btn-sm" onclick="clearPomoLog()">ล้าง</button>
+      </div>
+      <div id="pomo-log"></div>
+    </div>
+
+  </div>
   <div class="page" id="page-todo">
     <div class="card">
       <div class="section-title">เพิ่มงานใหม่</div>
@@ -865,7 +962,172 @@ function renderTD() {
 </div>`;
   }).join('');
 }
+// ══════════════════════════════════════════════════════════
+//  POMODORO
+// ══════════════════════════════════════════════════════════
+const POMO_MODES = {
+  focus25: { focus: 25, break: 5 },
+  focus50: { focus: 50, break: 10 },
+  custom:  { focus: 25, break: 5 },
+};
+let pomoMode     = 'focus25';
+let pomoPhase    = 'focus';   // 'focus' | 'break'
+let pomoTotal    = 25 * 60;
+let pomoLeft     = 25 * 60;
+let pomoRunning  = false;
+let pomoTimer    = null;
+let pomoRounds   = 0;
+let pomoFocusMins= 0;
+let pomoStreak   = 0;
+let pomoLog      = JSON.parse(localStorage.getItem('pomo_log_'+new Date().toDateString()) || '[]');
 
-</script>
-</body>
-</html>
+const RING_CIRC = 2 * Math.PI * 88; // ≈ 553
+
+function setPomoMode(m) {
+  pomoMode = m;
+  document.querySelectorAll('.pomo-mode-btn').forEach(b => b.classList.remove('active'));
+  $('pm-25').classList.toggle('active', m==='focus25');
+  $('pm-50').classList.toggle('active', m==='focus50');
+  $('pm-custom').classList.toggle('active', m==='custom');
+  $('pomo-custom-row').style.display = m==='custom' ? 'flex' : 'none';
+  if (m !== 'custom') { pomoReset(); }
+}
+
+window.setPomoMode = setPomoMode;
+
+window.applyCustom = () => {
+  const f = parseInt($('custom-focus').value) || 25;
+  const b = parseInt($('custom-break').value) || 5;
+  POMO_MODES.custom = { focus: Math.min(120,Math.max(1,f)), break: Math.min(60,Math.max(1,b)) };
+  pomoReset();
+};
+
+function pomoCurrentDurations() {
+  return POMO_MODES[pomoMode];
+}
+
+function pomoReset() {
+  clearInterval(pomoTimer); pomoRunning = false;
+  pomoPhase = 'focus';
+  pomoTotal = pomoCurrentDurations().focus * 60;
+  pomoLeft  = pomoTotal;
+  updatePomoUI();
+  $('pomo-play-btn').textContent = 'เริ่ม';
+}
+window.pomoReset = pomoReset;
+
+window.pomoToggle = () => {
+  if (pomoRunning) {
+    clearInterval(pomoTimer); pomoRunning = false;
+    $('pomo-play-btn').textContent = 'ต่อ';
+  } else {
+    pomoRunning = true;
+    $('pomo-play-btn').textContent = 'หยุด';
+    pomoTimer = setInterval(() => {
+      pomoLeft--;
+      if (pomoLeft <= 0) {
+        pomoPhaseEnd();
+      } else {
+        updatePomoUI();
+      }
+    }, 1000);
+  }
+};
+
+window.pomoSkip = () => { clearInterval(pomoTimer); pomoRunning = false; pomoPhaseEnd(); };
+
+function pomoPhaseEnd() {
+  clearInterval(pomoTimer); pomoRunning = false;
+  // notify
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(pomoPhase === 'focus' ? '⏰ หมดเวลาโฟกัส! พักได้แล้ว' : '✅ หมดเวลาพัก! โฟกัสต่อ');
+  }
+  // beep
+  playBeep();
+  // log
+  const dur = pomoCurrentDurations();
+  const now = new Date();
+  const timeStr = pad(now.getHours())+':'+pad(now.getMinutes());
+  if (pomoPhase === 'focus') {
+    pomoRounds++;
+    pomoFocusMins += dur.focus;
+    pomoStreak++;
+    pomoLog.unshift({ phase:'focus', mins: dur.focus, time: timeStr });
+  } else {
+    pomoLog.unshift({ phase:'break', mins: dur.break, time: timeStr });
+  }
+  savePomoLog();
+  // switch phase
+  pomoPhase = pomoPhase === 'focus' ? 'break' : 'focus';
+  pomoTotal = (pomoPhase === 'focus' ? dur.focus : dur.break) * 60;
+  pomoLeft  = pomoTotal;
+  updatePomoUI();
+  $('pomo-play-btn').textContent = 'เริ่ม';
+}
+
+function updatePomoUI() {
+  const mins = Math.floor(pomoLeft / 60);
+  const secs = pomoLeft % 60;
+  $('pomo-time').textContent = pad(mins) + ':' + pad(secs);
+
+  // ring
+  const pct = pomoLeft / pomoTotal;
+  const offset = RING_CIRC * (1 - pct);
+  const ring = $('pomo-ring');
+  ring.setAttribute('stroke-dashoffset', offset.toFixed(2));
+  ring.style.stroke = pomoPhase === 'focus' ? 'var(--lime)' : 'var(--amber)';
+
+  // phase label & color
+  $('pomo-phase-label').textContent = pomoPhase === 'focus' ? 'โฟกัส' : 'พักผ่อน';
+  $('pomo-phase-label').style.color = pomoPhase === 'focus' ? 'var(--lime)' : 'var(--amber)';
+  $('pomo-time').style.color = pomoPhase === 'focus' ? 'var(--text)' : 'var(--amber)';
+
+  // round label
+  $('pomo-round-label').textContent = 'รอบที่ ' + (pomoRounds + (pomoPhase==='focus' ? 1 : 0));
+
+  // stats
+  $('ps-rounds').textContent = pomoRounds;
+  $('ps-focus').textContent  = pomoFocusMins;
+  $('ps-streak').textContent = pomoStreak;
+
+  // log
+  renderPomoLog();
+}
+
+function renderPomoLog() {
+  const el = $('pomo-log');
+  if (!pomoLog.length) { el.innerHTML = `<div class="empty" style="padding:1rem 0;">ยังไม่มีประวัติ</div>`; return; }
+  el.innerHTML = pomoLog.slice(0,20).map(l => `
+    <div class="pomo-log-item">
+      <div class="pomo-log-dot" style="background:${l.phase==='focus'?'var(--lime)':'var(--amber)'}"></div>
+      <div style="flex:1;">${l.phase==='focus'?'โฟกัส '+l.mins+' นาที':'พัก '+l.mins+' นาที'}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${l.time}</div>
+    </div>`).join('');
+}
+
+window.clearPomoLog = () => { pomoLog = []; savePomoLog(); renderPomoLog(); };
+
+function savePomoLog() {
+  localStorage.setItem('pomo_log_'+new Date().toDateString(), JSON.stringify(pomoLog));
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+// Request notification permission on load
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// Init pomodoro display
+updatePomoUI();
