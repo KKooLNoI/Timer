@@ -537,15 +537,37 @@ textarea { padding: 10px 12px; resize: vertical; }
 </div>
 
 <!-- Firebase SDK -->
-<script type="module">
-// ════════════════════════════════════════════════════════
-//  ⚠️  วาง Firebase config ของคุณตรงนี้
-// ════════════════════════════════════════════════════════
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, orderBy }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-firestore-compat.min.js"></script>
+<script>
+// ────── wrapper ให้ใช้ชื่อฟังก์ชันเดิมได้ ──────
+const initializeApp = (cfg) => firebase.initializeApp(cfg);
+const getAuth = (app) => firebase.auth();
+const getFirestore = (app) => firebase.firestore();
+const createUserWithEmailAndPassword = (auth, e, p) => auth.createUserWithEmailAndPassword(e, p);
+const signInWithEmailAndPassword = (auth, e, p) => auth.signInWithEmailAndPassword(e, p);
+const fbSignOut = (auth) => auth.signOut();
+const onAuthStateChanged = (auth, cb) => auth.onAuthStateChanged(cb);
+
+// Firestore helpers
+function collection(db, ...segs) {
+  // segs like ['users', uid, 'countdowns'] => db.collection('users').doc(uid).collection('countdowns')
+  let ref = db;
+  segs.forEach((s, i) => { ref = i % 2 === 0 ? ref.collection(s) : ref.doc(s); });
+  return ref;
+}
+function doc(db, ...segs) {
+  let ref = db;
+  segs.forEach((s, i) => { ref = i % 2 === 0 ? ref.collection(s) : ref.doc(s); });
+  return ref;
+}
+const addDoc    = (ref, data) => ref.add(data);
+const updateDoc = (ref, data) => ref.update(data);
+const deleteDoc = (ref)       => ref.delete();
+const query     = (ref, ...fns) => { fns.forEach(fn => fn && (ref = fn(ref))); return ref; };
+const orderBy   = (field, dir = 'asc') => (ref) => ref.orderBy(field, dir);
+const onSnapshot = (ref, cb) => ref.onSnapshot(cb);
 
 const firebaseConfig = {
   apiKey:            "AIzaSyACZn9LwIOp8Jnq1-_0bHXmGSsQdIUW7Es",
@@ -1131,3 +1153,9 @@ if ('Notification' in window && Notification.permission === 'default') {
 
 // Init pomodoro display
 updatePomoUI();
+
+
+
+</script>
+</body>
+</html>
