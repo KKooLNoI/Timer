@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Task Countdown</title>
+<title>My Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
   --bg: #0c0c0f;
   --s1: #141418;
@@ -20,7 +19,7 @@
   --b2: rgba(255,255,255,0.16);
   --text: #eeede6;
   --muted: rgba(238,237,230,0.42);
-  --dim: rgba(238,237,230,0.22);
+  --dim: rgba(238,237,230,0.20);
   --lime: #c8f542;
   --lime-dim: rgba(200,245,66,0.10);
   --lime-text: #182400;
@@ -28,74 +27,146 @@
   --red-dim: rgba(255,90,90,0.10);
   --amber: #ffb830;
   --amber-dim: rgba(255,184,48,0.10);
+  --blue: #5ab4ff;
+  --blue-dim: rgba(90,180,255,0.10);
   --mono: 'DM Mono', monospace;
   --sans: 'Sarabun', sans-serif;
-  --r: 10px;
-  --r-sm: 7px;
+  --r: 10px; --r-sm: 7px;
 }
-
 html { font-size: 16px; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  padding: 2rem 1rem 5rem;
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+/* ── Auth screen ── */
+#auth-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
 }
+.auth-box {
+  width: 100%; max-width: 360px;
+  background: var(--s1); border: 0.5px solid var(--b1); border-radius: var(--r);
+  padding: 2rem;
+}
+.auth-logo { font-family: var(--mono); font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; }
+.auth-logo em { color: var(--lime); font-style: normal; }
+.auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--b1); }
+.auth-tab {
+  flex: 1; padding: 8px; font-family: var(--sans); font-size: 13px;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: all 0.15s;
+}
+.auth-tab.active { color: var(--lime); border-bottom-color: var(--lime); }
+.auth-field { margin-bottom: 12px; }
+.auth-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.04em; }
+.auth-field input {
+  width: 100%; height: 40px; padding: 0 12px;
+  background: var(--s2); border: 0.5px solid var(--b1);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.15s;
+}
+.auth-field input:focus { border-color: var(--lime); }
+.auth-err { font-size: 12px; color: var(--red); background: var(--red-dim); padding: 8px 12px; border-radius: var(--r-sm); margin-bottom: 12px; display: none; }
+.btn-full {
+  width: 100%; height: 42px; border-radius: var(--r-sm);
+  border: none; background: var(--lime); color: var(--lime-text);
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-full:hover { background: #d5ff55; }
+.btn-full:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.container { max-width: 640px; margin: 0 auto; }
-
-.header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 2rem; padding-bottom: 1.25rem;
+/* ── App layout ── */
+#app { display: none; }
+.app-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 1.5rem; height: 54px;
   border-bottom: 0.5px solid var(--b1);
+  position: sticky; top: 0; background: var(--bg); z-index: 100;
 }
-.logo { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.04em; }
-.logo em { color: var(--lime); font-style: normal; }
-.header-clock { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+.app-logo { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+.app-logo em { color: var(--lime); font-style: normal; }
+.nav-tabs { display: flex; gap: 2px; flex: 1; }
+.nav-tab {
+  height: 32px; padding: 0 14px; border-radius: 20px;
+  border: none; background: none; color: var(--muted);
+  font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--text); background: var(--b0); }
+.nav-tab.active { background: var(--lime-dim); color: var(--lime); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.header-clock { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.user-email { font-size: 12px; color: var(--dim); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-signout {
+  height: 28px; padding: 0 12px; border-radius: 20px;
+  border: 0.5px solid var(--b1); background: none; color: var(--muted);
+  font-size: 12px; font-family: var(--sans); cursor: pointer; transition: all 0.15s;
+}
+.btn-signout:hover { color: var(--red); border-color: rgba(255,90,90,0.3); }
 
-/* Add form */
-.add-card {
+/* ── Pages ── */
+.page { display: none; max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.page.active { display: block; }
+
+/* ── Common ── */
+.card {
   background: var(--s1); border: 0.5px solid var(--b1);
-  border-radius: var(--r); padding: 1.25rem; margin-bottom: 1.5rem;
+  border-radius: var(--r); padding: 1.25rem; margin-bottom: 1rem;
 }
-.add-card-title {
+.card:hover { border-color: var(--b2); }
+.section-title {
   font-size: 11px; font-weight: 500; letter-spacing: 0.07em;
   text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
 }
-.form-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-.form-row:last-child { margin-bottom: 0; }
-
-input[type="text"], input[type="date"], input[type="time"] {
-  height: 38px; padding: 0 12px;
+input[type="text"], input[type="date"], input[type="time"], input[type="email"], input[type="password"], textarea, select {
   background: var(--s2); border: 0.5px solid var(--b1);
   border-radius: var(--r-sm); color: var(--text);
-  font-family: var(--sans); font-size: 14px; outline: none;
-  transition: border-color 0.15s;
+  font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.15s;
+  padding: 0 12px;
 }
-input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus {
-  border-color: var(--lime);
-}
-input::placeholder { color: var(--dim); }
-input[type="date"], input[type="time"] { font-family: var(--mono); font-size: 13px; }
+input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus,
+input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus { border-color: var(--lime); }
+input::placeholder, textarea::placeholder { color: var(--dim); }
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+select { appearance: none; cursor: pointer; }
+textarea { padding: 10px 12px; resize: vertical; }
 
 .btn {
-  height: 38px; padding: 0 16px; border-radius: var(--r-sm);
+  height: 36px; padding: 0 14px; border-radius: var(--r-sm);
   border: 0.5px solid var(--b1); background: var(--s2); color: var(--text);
-  font-family: var(--sans); font-size: 13px; cursor: pointer;
-  transition: all 0.15s; white-space: nowrap;
+  font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .btn:hover { border-color: var(--b2); background: var(--s3); }
-.btn-lime {
-  background: var(--lime); color: var(--lime-text);
-  border-color: var(--lime); font-weight: 600;
-}
+.btn-lime { background: var(--lime); color: var(--lime-text); border-color: var(--lime); font-weight: 600; }
 .btn-lime:hover { background: #d5ff55; border-color: #d5ff55; }
+.btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
+.btn-icon {
+  width: 28px; height: 28px; border-radius: 6px; border: none;
+  background: none; color: var(--muted); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--s3); color: var(--text); }
+.btn-icon.del:hover { background: var(--red-dim); color: var(--red); }
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.form-row:last-child { margin-bottom: 0; }
+.flex1 { flex: 1; min-width: 0; }
+.empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 14px; }
+.tag {
+  font-family: var(--mono); font-size: 11px;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.tag-lime { background: var(--lime-dim); color: var(--lime); }
+.tag-red  { background: var(--red-dim);  color: var(--red);  }
+.tag-amber{ background: var(--amber-dim); color: var(--amber); }
+.tag-gray { background: var(--b0); color: var(--muted); border: 0.5px solid var(--b1); }
+.dot-pulse { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-/* Summary */
-.summary-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+/* ────────────────────────────────────────
+   PAGE: COUNTDOWN TASKS
+─────────────────────────────────────────*/
+.sum-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
 .sum-box {
   flex: 1; background: var(--s1); border: 0.5px solid var(--b0);
   border-radius: var(--r-sm); padding: 10px 12px;
@@ -106,181 +177,406 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cur
 .sum-box.c-amber .sum-val { color: var(--amber); }
 .sum-box.c-red .sum-val { color: var(--red); }
 
-/* Filter */
-.filter-bar {
-  display: flex; gap: 6px; margin-bottom: 1.25rem;
-  flex-wrap: wrap; align-items: center;
-}
+.filter-bar { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
 .filter-btn {
-  height: 30px; padding: 0 12px; border-radius: 20px;
+  height: 28px; padding: 0 12px; border-radius: 20px;
   border: 0.5px solid var(--b1); background: none; color: var(--muted);
-  font-family: var(--sans); font-size: 12px; cursor: pointer; transition: all 0.15s;
+  font-size: 12px; font-family: var(--sans); cursor: pointer; transition: all 0.15s;
 }
-.filter-btn:hover { border-color: var(--b2); color: var(--text); }
-.filter-btn.active { border-color: var(--lime); color: var(--lime); background: var(--lime-dim); }
-.filter-spacer { flex: 1; }
-.total-label { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+.filter-btn:hover { color: var(--text); border-color: var(--b2); }
+.filter-btn.active { color: var(--lime); border-color: var(--lime); background: var(--lime-dim); }
 
-/* Task list */
-.task-list { display: flex; flex-direction: column; gap: 8px; }
-
-/* Task card */
 .task-card {
-  background: var(--s1); border: 0.5px solid var(--b1);
-  border-radius: var(--r); overflow: hidden;
-  transition: border-color 0.2s, opacity 0.3s;
-  animation: fadeUp 0.22s ease;
+  background: var(--s1); border: 0.5px solid var(--b1); border-radius: var(--r);
+  overflow: hidden; margin-bottom: 8px; transition: border-color 0.2s, opacity 0.3s;
+  animation: fadeUp 0.2s ease;
 }
-@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .task-card:hover { border-color: var(--b2); }
-.task-card.done { opacity: 0.42; }
+.task-card.done { opacity: 0.4; }
+.accent { height: 2px; }
+.status-future .accent { background: var(--lime); }
+.status-soon   .accent { background: var(--amber); }
+.status-overdue .accent { background: var(--red); }
+.status-done   .accent { background: var(--b1); }
 
-.accent-bar { height: 2px; width: 100%; }
-.status-future .accent-bar { background: var(--lime); }
-.status-soon   .accent-bar { background: var(--amber); }
-.status-overdue .accent-bar { background: var(--red); }
-.status-done   .accent-bar { background: var(--b1); }
-
-.task-inner { padding: 14px 14px 12px; }
-
-.task-top {
-  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
-}
-.task-check {
+.task-body { padding: 12px 14px; }
+.task-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.chk {
   width: 20px; height: 20px; border-radius: 6px;
-  border: 0.5px solid var(--b2); background: none;
-  cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  border: 0.5px solid var(--b2); background: none; flex-shrink: 0; margin-top: 2px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; transition: all 0.15s;
+  font-size: 11px; cursor: pointer; transition: all 0.15s;
 }
-.task-check:hover { border-color: var(--lime); }
-.task-check.checked { background: var(--lime); border-color: var(--lime); color: var(--lime-text); }
+.chk:hover { border-color: var(--lime); }
+.chk.checked { background: var(--lime); border-color: var(--lime); color: var(--lime-text); }
 .task-name { flex: 1; font-size: 15px; line-height: 1.4; word-break: break-word; }
 .task-card.done .task-name { text-decoration: line-through; color: var(--muted); }
+.task-acts { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.task-card:hover .task-acts { opacity: 1; }
 
-.task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
-.task-card:hover .task-actions { opacity: 1; }
-.action-btn {
-  width: 28px; height: 28px; border-radius: 6px;
-  border: none; background: none; color: var(--muted);
-  font-size: 13px; cursor: pointer; display: flex;
-  align-items: center; justify-content: center; transition: all 0.15s;
-}
-.action-btn:hover { background: var(--s3); color: var(--text); }
-.action-btn.del:hover { background: var(--red-dim); color: var(--red); }
-
-/* Countdown display */
 .cd-row { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
-.cd-block { display: flex; align-items: baseline; gap: 3px; }
 .cd-num {
-  font-family: var(--mono); font-size: 28px; font-weight: 400;
+  font-family: var(--mono); font-size: 26px; font-weight: 400;
   letter-spacing: -0.02em; line-height: 1;
 }
 .cd-unit { font-size: 11px; color: var(--muted); }
-.cd-sep { font-family: var(--mono); font-size: 22px; color: var(--b2); padding: 0 3px; }
+.cd-sep { font-family: var(--mono); font-size: 20px; color: var(--b2); padding: 0 2px; }
 .color-future .cd-num { color: var(--text); }
 .color-soon   .cd-num { color: var(--amber); }
 .color-overdue .cd-num { color: var(--red); }
 .color-done   .cd-num { color: var(--muted); }
 
-/* Meta tags */
-.task-meta { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
-.meta-tag {
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-  background: var(--s3); border: 0.5px solid var(--b0);
-  padding: 3px 9px; border-radius: 20px; display: flex; align-items: center; gap: 5px;
-}
-.meta-tag.lime { background: var(--lime-dim); color: var(--lime); border-color: rgba(200,245,66,0.15); }
-.meta-tag.red  { background: var(--red-dim);  color: var(--red);  border-color: rgba(255,90,90,0.15); }
-.meta-tag.amber { background: var(--amber-dim); color: var(--amber); border-color: rgba(255,184,48,0.15); }
-.dot-pulse {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: currentColor; flex-shrink: 0;
-  animation: pulse 1.2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.task-meta { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.edit-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+.edit-row input { height: 32px; font-size: 13px; }
 
-/* Inline edit */
-.edit-row {
-  display: flex; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap;
+/* ────────────────────────────────────────
+   PAGE: CALENDAR
+─────────────────────────────────────────*/
+.cal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+.cal-title { font-family: var(--mono); font-size: 16px; font-weight: 500; flex: 1; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 1rem; }
+.cal-dow {
+  text-align: center; font-size: 11px; color: var(--muted);
+  padding: 6px 0; font-family: var(--mono);
 }
-.edit-row input[type="text"]  { flex: 1; min-width: 150px; height: 34px; font-size: 13px; }
-.edit-row input[type="date"]  { flex: 1; min-width: 130px; height: 34px; }
-.edit-row input[type="time"]  { width: 100px; height: 34px; }
-.btn-sm { height: 34px; padding: 0 14px; font-size: 12px; }
+.cal-day {
+  min-height: 72px; background: var(--s1); border: 0.5px solid var(--b0);
+  border-radius: var(--r-sm); padding: 6px; cursor: pointer; transition: border-color 0.15s;
+  position: relative;
+}
+.cal-day:hover { border-color: var(--b2); }
+.cal-day.other-month { opacity: 0.3; }
+.cal-day.today { border-color: var(--lime); }
+.cal-day.selected { background: var(--lime-dim); border-color: var(--lime); }
+.cal-day-num { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.cal-day.today .cal-day-num { color: var(--lime); font-weight: 500; }
+.cal-dots { display: flex; flex-wrap: wrap; gap: 3px; }
+.cal-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.cal-dot.countdown { background: var(--lime); }
+.cal-dot.todo { background: var(--blue); }
+.cal-dot.overdue { background: var(--red); }
 
-/* Empty */
-.empty { text-align: center; padding: 3.5rem 1rem; color: var(--muted); font-size: 14px; line-height: 2; }
+.cal-detail {
+  background: var(--s1); border: 0.5px solid var(--b1);
+  border-radius: var(--r); padding: 1.25rem;
+}
+.cal-detail-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; color: var(--muted); }
+.cal-event {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--r-sm); margin-bottom: 6px;
+  background: var(--s2); border: 0.5px solid var(--b0);
+}
+.cal-event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cal-event-name { flex: 1; font-size: 14px; }
+.cal-event-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
-@media (max-width: 480px) {
-  body { padding: 1.25rem 0.75rem 4rem; }
-  .cd-num { font-size: 22px; }
-  .summary-bar { flex-wrap: wrap; }
+/* ────────────────────────────────────────
+   PAGE: TO-DO
+─────────────────────────────────────────*/
+.todo-sections { display: flex; flex-direction: column; gap: 1rem; }
+.todo-section-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.todo-section-name { font-size: 14px; font-weight: 500; flex: 1; }
+.todo-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.todo-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: var(--s2); border: 0.5px solid var(--b0);
+  margin-bottom: 5px; transition: all 0.15s; animation: fadeUp 0.2s ease;
+}
+.todo-item:hover { border-color: var(--b1); }
+.todo-item.done-item { opacity: 0.4; }
+.todo-item.done-item .todo-text { text-decoration: line-through; color: var(--muted); }
+.todo-text { flex: 1; font-size: 14px; line-height: 1.4; word-break: break-word; }
+.todo-note { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.todo-acts { display: flex; gap: 4px; opacity: 0; flex-shrink: 0; }
+.todo-item:hover .todo-acts { opacity: 1; }
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.p-high   { background: var(--red); }
+.p-medium { background: var(--amber); }
+.p-low    { background: var(--blue); }
+.progress-wrap { height: 3px; background: var(--b0); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--lime); border-radius: 2px; transition: width 0.4s ease; }
+
+/* Loading */
+#loading {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .app-header { padding: 0 0.75rem; }
+  .nav-tab { padding: 0 10px; font-size: 12px; }
+  .user-email { display: none; }
+  .cal-day { min-height: 54px; }
+  .sum-bar { flex-wrap: wrap; }
   .sum-box { min-width: calc(50% - 4px); }
 }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <div class="header">
-    <div class="logo">TASK<em>·</em>COUNTDOWN</div>
-    <div class="header-clock" id="clock">--:--:--</div>
-  </div>
+<div id="loading">กำลังโหลด...</div>
 
-  <!-- Add form -->
-  <div class="add-card">
-    <div class="add-card-title">เพิ่ม Task ใหม่</div>
-    <div class="form-row">
-      <input type="text" id="new-name" placeholder="ชื่องาน / กิจกรรม..." style="flex:1;" onkeydown="if(event.key==='Enter')addTask()" />
+<!-- Auth -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-box">
+    <div class="auth-logo">MY<em>·</em>PLANNER</div>
+    <div class="auth-sub">จัดการงาน นับถอยหลัง ปฏิทิน</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+      <button class="auth-tab" onclick="switchTab('register')">สมัครสมาชิก</button>
     </div>
-    <div class="form-row">
-      <input type="date" id="new-date" style="flex:1;min-width:140px;" />
-      <input type="time" id="new-time" value="09:00" style="width:110px;" />
-      <button class="btn btn-lime" onclick="addTask()">+ เพิ่ม</button>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-field">
+      <label>อีเมล</label>
+      <input type="email" id="auth-email" placeholder="email@example.com" />
+    </div>
+    <div class="auth-field">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()" />
+    </div>
+    <div class="auth-field" id="pass2-wrap" style="display:none;">
+      <label>ยืนยันรหัสผ่าน</label>
+      <input type="password" id="auth-pass2" placeholder="••••••••" />
+    </div>
+    <button class="btn-full" id="auth-btn" onclick="authSubmit()">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="app-header">
+    <div class="app-logo">MY<em>·</em>PLANNER</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('countdown')">Countdown</button>
+      <button class="nav-tab" onclick="showPage('calendar')">ปฏิทิน</button>
+      <button class="nav-tab" onclick="showPage('todo')">To-Do</button>
+    </div>
+    <div class="header-right">
+      <div class="header-clock" id="clock">--:--:--</div>
+      <div class="user-email" id="user-email"></div>
+      <button class="btn-signout" onclick="signOut()">ออก</button>
     </div>
   </div>
 
-  <!-- Summary -->
-  <div class="summary-bar" id="summary-bar"></div>
+  <!-- ── COUNTDOWN PAGE ── -->
+  <div class="page active" id="page-countdown">
+    <div class="card">
+      <div class="section-title">เพิ่ม Task ใหม่</div>
+      <div class="form-row">
+        <input type="text" class="flex1" id="ct-name" placeholder="ชื่องาน / กิจกรรม..." onkeydown="if(event.key==='Enter')addCountdown()" style="height:38px;" />
+      </div>
+      <div class="form-row">
+        <input type="date" id="ct-date" style="flex:1;min-width:130px;height:38px;" />
+        <input type="time" id="ct-time" value="09:00" style="width:110px;height:38px;" />
+        <button class="btn btn-lime" onclick="addCountdown()">+ เพิ่ม</button>
+      </div>
+    </div>
 
-  <!-- Filter -->
-  <div class="filter-bar">
-    <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
-    <button class="filter-btn" onclick="setFilter('upcoming',this)">ยังไม่ถึง</button>
-    <button class="filter-btn" onclick="setFilter('soon',this)">ใกล้ครบ</button>
-    <button class="filter-btn" onclick="setFilter('overdue',this)">เลยกำหนด</button>
-    <button class="filter-btn" onclick="setFilter('done',this)">เสร็จแล้ว</button>
-    <span class="filter-spacer"></span>
-    <span class="total-label" id="total-label"></span>
+    <div class="sum-bar" id="ct-sum"></div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setCTFilter('all',this)">ทั้งหมด</button>
+      <button class="filter-btn" onclick="setCTFilter('upcoming',this)">ยังไม่ถึง</button>
+      <button class="filter-btn" onclick="setCTFilter('soon',this)">ใกล้ครบ</button>
+      <button class="filter-btn" onclick="setCTFilter('overdue',this)">เลยกำหนด</button>
+      <button class="filter-btn" onclick="setCTFilter('done',this)">เสร็จแล้ว</button>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:var(--dim);font-family:var(--mono);" id="ct-count"></span>
+    </div>
+
+    <div id="ct-list"></div>
   </div>
 
-  <!-- Task list -->
-  <div class="task-list" id="task-list"></div>
+  <!-- ── CALENDAR PAGE ── -->
+  <div class="page" id="page-calendar">
+    <div class="card" style="padding:1rem;">
+      <div class="cal-header">
+        <button class="btn btn-sm" onclick="calPrev()">‹</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="btn btn-sm" onclick="calNext()">›</button>
+        <button class="btn btn-sm" onclick="calToday()">วันนี้</button>
+      </div>
+      <div class="cal-grid" id="cal-dow"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div class="cal-detail" id="cal-detail">
+      <div class="cal-detail-title" id="cal-detail-title">เลือกวันเพื่อดูกิจกรรม</div>
+      <div id="cal-events"></div>
+    </div>
+  </div>
+
+  <!-- ── TODO PAGE ── -->
+  <div class="page" id="page-todo">
+    <div class="card">
+      <div class="section-title">เพิ่มงานใหม่</div>
+      <div class="form-row">
+        <input type="text" class="flex1" id="td-name" placeholder="ชื่องาน..." style="height:38px;" onkeydown="if(event.key==='Enter')addTodo()" />
+        <select id="td-priority" style="height:38px;width:110px;padding:0 10px;">
+          <option value="high">🔴 สำคัญ</option>
+          <option value="medium" selected>🟡 ปานกลาง</option>
+          <option value="low">🔵 ต่ำ</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <input type="text" class="flex1" id="td-note" placeholder="หมายเหตุ (ไม่บังคับ)..." style="height:38px;" />
+        <select id="td-section" style="height:38px;flex:1;padding:0 10px;min-width:120px;">
+          <option value="inbox">📥 Inbox</option>
+          <option value="work">💼 งาน</option>
+          <option value="personal">🏠 ส่วนตัว</option>
+        </select>
+        <button class="btn btn-lime" onclick="addTodo()">+ เพิ่ม</button>
+      </div>
+    </div>
+
+    <div id="td-sections"></div>
+  </div>
 
 </div>
-<script>
-let tasks   = JSON.parse(localStorage.getItem('tcd3') || '[]');
-let filter  = 'all';
-let editId  = null;
 
-const save  = () => localStorage.setItem('tcd3', JSON.stringify(tasks));
-const pad   = n  => String(n).padStart(2,'0');
-const $     = id => document.getElementById(id);
-const esc   = s  => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+<!-- Firebase SDK -->
+<script type="module">
+// ════════════════════════════════════════════════════════
+//  ⚠️  วาง Firebase config ของคุณตรงนี้
+// ════════════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Clock
+const firebaseConfig = {
+  apiKey:            "AIzaSyACZn9LwIOp8Jnq1-_0bHXmGSsQdIUW7Es",
+  authDomain:        "timer-532d0.firebaseapp.com",
+  projectId:         "timer-532d0",
+  storageBucket:     "timer-532d0.firebasestorage.app",
+  messagingSenderId: "586491723623",
+  appId:             "1:586491723623:web:40724bda506455d84bf9c2"
+};
+// ════════════════════════════════════════════════════════
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── Helpers ──────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const $   = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+let uid = null;
+let ctTasks = [], todos = [];
+let ctFilter = 'all';
+let ctEditId = null;
+let calYear, calMonth, calSelectedDate;
+let unsubCT = null, unsubTD = null;
+
+// ── Clock ─────────────────────────────────────────────────
 setInterval(() => {
   const n = new Date();
   $('clock').textContent = pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
 }, 1000);
 
-// Init today
-(function() {
-  $('new-date').value = new Date().toISOString().slice(0,10);
-})();
+// ── Auth UI ───────────────────────────────────────────────
+let authMode = 'login';
+window.switchTab = (m) => {
+  authMode = m;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (m==='login')));
+  $('pass2-wrap').style.display = m === 'register' ? 'block' : 'none';
+  $('auth-btn').textContent = m === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+  $('auth-err').style.display = 'none';
+};
 
-function getStatus(t) {
+window.authSubmit = async () => {
+  const email = $('auth-email').value.trim();
+  const pass  = $('auth-pass').value;
+  const err   = $('auth-err');
+  err.style.display = 'none';
+  if (!email || !pass) { showErr('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
+  if (authMode === 'register') {
+    const pass2 = $('auth-pass2').value;
+    if (pass !== pass2) { showErr('รหัสผ่านไม่ตรงกัน'); return; }
+    if (pass.length < 6) { showErr('รหัสผ่านต้องมีอย่างน้อย 6 ตัว'); return; }
+  }
+  $('auth-btn').disabled = true;
+  try {
+    if (authMode === 'login') await signInWithEmailAndPassword(auth, email, pass);
+    else await createUserWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found':'ไม่พบบัญชีนี้',
+      'auth/wrong-password':'รหัสผ่านไม่ถูกต้อง',
+      'auth/email-already-in-use':'อีเมลนี้ถูกใช้แล้ว',
+      'auth/invalid-email':'อีเมลไม่ถูกต้อง',
+      'auth/too-many-requests':'ลองใหม่ในภายหลัง',
+      'auth/invalid-credential':'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+    };
+    showErr(msgs[e.code] || e.message);
+  } finally { $('auth-btn').disabled = false; }
+};
+
+function showErr(msg) {
+  const e = $('auth-err');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+window.signOut = () => fbSignOut(auth);
+
+// ── Auth state ────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  $('loading').style.display = 'none';
+  if (user) {
+    uid = user.uid;
+    $('auth-screen').style.display = 'none';
+    $('app').style.display = 'block';
+    $('user-email').textContent = user.email;
+    initData();
+    initCal();
+  } else {
+    uid = null;
+    $('auth-screen').style.display = 'flex';
+    $('app').style.display = 'none';
+    if (unsubCT) unsubCT();
+    if (unsubTD) unsubTD();
+    ctTasks = []; todos = [];
+  }
+});
+
+// ── Nav ───────────────────────────────────────────────────
+window.showPage = (name) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  $('page-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'calendar') renderCal();
+};
+
+// ── Firestore helpers ─────────────────────────────────────
+const ctCol  = () => collection(db, 'users', uid, 'countdowns');
+const tdCol  = () => collection(db, 'users', uid, 'todos');
+
+function initData() {
+  unsubCT = onSnapshot(query(ctCol(), orderBy('createdAt','desc')), snap => {
+    ctTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCT();
+    renderCal();
+  });
+  unsubTD = onSnapshot(query(tdCol(), orderBy('createdAt','desc')), snap => {
+    todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTD();
+    renderCal();
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  COUNTDOWN
+// ══════════════════════════════════════════════════════════
+function ctStatus(t) {
   if (t.done) return 'done';
   const diff = new Date(t.date+'T'+t.time+':00') - Date.now();
   if (diff <= 0) return 'overdue';
@@ -289,180 +585,287 @@ function getStatus(t) {
 }
 
 function buildCd(t) {
-  const diff   = new Date(t.date+'T'+t.time+':00') - Date.now();
-  const abs    = Math.floor(Math.abs(diff)/1000);
-  const days   = Math.floor(abs/86400);
-  const hrs    = Math.floor((abs%86400)/3600);
-  const mins   = Math.floor((abs%3600)/60);
-  const secs   = abs%60;
-  const status = getStatus(t);
-  const cc     = t.done ? 'color-done' : 'color-'+status;
-
-  const blk = (n,u) => `<span class="cd-block"><span class="cd-num">${n}</span><span class="cd-unit">${u}</span></span>`;
+  const diff  = new Date(t.date+'T'+t.time+':00') - Date.now();
+  const abs   = Math.floor(Math.abs(diff)/1000);
+  const days  = Math.floor(abs/86400);
+  const hrs   = Math.floor((abs%86400)/3600);
+  const mins  = Math.floor((abs%3600)/60);
+  const secs  = abs%60;
+  const s     = ctStatus(t);
+  const cc    = t.done ? 'color-done' : 'color-'+s;
+  const n = (v,u) => `<span class="cd-num">${v}</span><span class="cd-unit">${u}</span>`;
   const sep = `<span class="cd-sep">:</span>`;
-
-  let inner;
-  if (days >= 1) {
-    inner = blk(days,'วัน') + sep + blk(pad(hrs),'ชม.') + sep + blk(pad(mins),'น.');
-  } else {
-    inner = blk(pad(hrs),'ชม.') + sep + blk(pad(mins),'น.') + sep + blk(pad(secs),'ว.');
-  }
+  const inner = days >= 1
+    ? n(days,'วัน')+sep+n(pad(hrs),'ชม.')+sep+n(pad(mins),'น.')
+    : n(pad(hrs),'ชม.')+sep+n(pad(mins),'น.')+sep+n(pad(secs),'ว.');
   return `<div class="cd-row ${cc}">${inner}</div>`;
 }
 
-function buildMeta(t) {
-  const status = getStatus(t);
-  if (t.done) return `<span class="meta-tag">✓ เสร็จแล้ว</span>`;
-  const target  = new Date(t.date+'T'+t.time+':00');
+function buildCdMeta(t) {
+  if (t.done) return `<span class="tag tag-gray">✓ เสร็จแล้ว</span>`;
+  const s = ctStatus(t);
+  const target = new Date(t.date+'T'+t.time+':00');
   const dateStr = target.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
   const timeStr = pad(target.getHours())+':'+pad(target.getMinutes())+' น.';
-
-  let badge = '';
-  if (status === 'overdue') badge = `<span class="meta-tag red">⚠ เลยกำหนด</span>`;
-  else if (status === 'soon') badge = `<span class="meta-tag amber"><span class="dot-pulse"></span>ใกล้ครบ</span>`;
-  else badge = `<span class="meta-tag lime"><span class="dot-pulse"></span>กำลังนับ</span>`;
-
-  return badge + `<span class="meta-tag">${dateStr} ${timeStr}</span>`;
+  let badge = s === 'overdue'
+    ? `<span class="tag tag-red">⚠ เลยกำหนด</span>`
+    : s === 'soon'
+    ? `<span class="tag tag-amber"><span class="dot-pulse"></span>ใกล้ครบ</span>`
+    : `<span class="tag tag-lime"><span class="dot-pulse"></span>กำลังนับ</span>`;
+  return badge + `<span class="tag tag-gray">${dateStr} ${timeStr}</span>`;
 }
 
-function render() {
-  // summary counts
-  const cnt = {future:0,soon:0,overdue:0,done:0};
-  tasks.forEach(t => cnt[getStatus(t)]++);
+window.addCountdown = async () => {
+  const name = $('ct-name').value.trim();
+  const date = $('ct-date').value;
+  const time = $('ct-time').value || '09:00';
+  if (!name || !date) { $('ct-name').focus(); return; }
+  await addDoc(ctCol(), { name, date, time, done: false, createdAt: Date.now() });
+  $('ct-name').value = '';
+  $('ct-date').value = new Date().toISOString().slice(0,10);
+};
 
-  $('summary-bar').innerHTML = `
-    <div class="sum-box"><div class="sum-val">${tasks.length}</div><div class="sum-lbl">ทั้งหมด</div></div>
+window.toggleCT = async (id) => {
+  const t = ctTasks.find(x => x.id===id);
+  if (t) await updateDoc(doc(db,'users',uid,'countdowns',id), { done: !t.done });
+};
+window.delCT = async (id) => { await deleteDoc(doc(db,'users',uid,'countdowns',id)); };
+window.ctEditToggle = (id) => { ctEditId = ctEditId===id ? null : id; renderCT(); if(ctEditId){const el=$('cen-'+id);if(el){el.focus();el.select();}} };
+window.saveCTEdit = async (id) => {
+  const n=$('cen-'+id).value.trim(), d=$('ced-'+id).value, ti=$('cet-'+id).value;
+  const upd = {};
+  if(n) upd.name=n; if(d) upd.date=d; if(ti) upd.time=ti;
+  await updateDoc(doc(db,'users',uid,'countdowns',id), upd);
+  ctEditId = null;
+};
+window.setCTFilter = (f, btn) => {
+  ctFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCT();
+};
+
+function renderCT() {
+  // init date input
+  if (!$('ct-date').value) $('ct-date').value = new Date().toISOString().slice(0,10);
+
+  const cnt = {future:0,soon:0,overdue:0,done:0};
+  ctTasks.forEach(t => cnt[ctStatus(t)]++);
+  $('ct-sum').innerHTML = `
+    <div class="sum-box"><div class="sum-val">${ctTasks.length}</div><div class="sum-lbl">ทั้งหมด</div></div>
     <div class="sum-box c-lime"><div class="sum-val">${cnt.future+cnt.soon}</div><div class="sum-lbl">ยังไม่ถึง</div></div>
     <div class="sum-box c-amber"><div class="sum-val">${cnt.soon}</div><div class="sum-lbl">ใกล้ครบ</div></div>
     <div class="sum-box c-red"><div class="sum-val">${cnt.overdue}</div><div class="sum-lbl">เลยกำหนด</div></div>
   `;
-
-  const list = tasks.filter(t => {
-    const s = getStatus(t);
-    if (filter === 'all')      return true;
-    if (filter === 'upcoming') return s === 'future';
-    if (filter === 'soon')     return s === 'soon';
-    if (filter === 'overdue')  return s === 'overdue';
-    if (filter === 'done')     return s === 'done';
+  const list = ctTasks.filter(t => {
+    const s = ctStatus(t);
+    if (ctFilter==='all') return true;
+    if (ctFilter==='upcoming') return s==='future';
+    if (ctFilter==='soon') return s==='soon';
+    if (ctFilter==='overdue') return s==='overdue';
+    if (ctFilter==='done') return s==='done';
     return true;
   });
-
-  $('total-label').textContent = list.length + ' รายการ';
-
-  const el = $('task-list');
-  if (!list.length) {
-    el.innerHTML = `<div class="empty">ไม่มีงานในหมวดนี้</div>`;
-    return;
-  }
-
+  $('ct-count').textContent = list.length+' รายการ';
+  const el = $('ct-list');
+  if (!list.length) { el.innerHTML = `<div class="empty">ไม่มีงานในหมวดนี้</div>`; return; }
   el.innerHTML = list.map(t => {
-    const status  = getStatus(t);
-    const editing = editId === t.id;
+    const s = ctStatus(t);
+    const editing = ctEditId === t.id;
     return `
-<div class="task-card status-${status} ${t.done?'done':''}" id="card-${t.id}">
-  <div class="accent-bar"></div>
-  <div class="task-inner">
-
+<div class="task-card status-${s} ${t.done?'done':''}" id="ccard-${t.id}">
+  <div class="accent"></div>
+  <div class="task-body">
     <div class="task-top">
-      <div class="task-check ${t.done?'checked':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</div>
+      <div class="chk ${t.done?'checked':''}" onclick="toggleCT('${t.id}')">${t.done?'✓':''}</div>
       <div class="task-name">${esc(t.name)}</div>
-      <div class="task-actions">
-        <button class="action-btn" onclick="toggleEdit(${t.id})" title="แก้ไข">✎</button>
-        <button class="action-btn del" onclick="del(${t.id})" title="ลบ">✕</button>
+      <div class="task-acts">
+        <button class="btn-icon" onclick="ctEditToggle('${t.id}')">✎</button>
+        <button class="btn-icon del" onclick="delCT('${t.id}')">✕</button>
       </div>
     </div>
-
-    ${editing ? `
-    <div class="edit-row">
-      <input type="text"  id="en-${t.id}" value="${esc(t.name)}" />
-      <input type="date"  id="ed-${t.id}" value="${t.date}" />
-      <input type="time"  id="et-${t.id}" value="${t.time}" />
-      <button class="btn btn-lime btn-sm" onclick="saveEdit(${t.id})">บันทึก</button>
-    </div>` : ''}
-
-    <div id="cd-${t.id}">${buildCd(t)}</div>
-    <div class="task-meta" id="mt-${t.id}">${buildMeta(t)}</div>
-
+    ${editing?`<div class="edit-row">
+      <input type="text" id="cen-${t.id}" value="${esc(t.name)}" style="flex:1;min-width:140px;" />
+      <input type="date" id="ced-${t.id}" value="${t.date}" style="flex:1;min-width:130px;" />
+      <input type="time" id="cet-${t.id}" value="${t.time}" style="width:100px;" />
+      <button class="btn btn-lime btn-sm" onclick="saveCTEdit('${t.id}')">บันทึก</button>
+    </div>`:''}
+    <div id="ccd-${t.id}">${buildCd(t)}</div>
+    <div class="task-meta" id="cmt-${t.id}">${buildCdMeta(t)}</div>
   </div>
 </div>`;
   }).join('');
 }
 
-// Live tick — only update countdown numbers & meta, no full re-render
+// Live tick
 setInterval(() => {
-  tasks.forEach(t => {
-    const cdEl = $('cd-'+t.id);
-    const mtEl = $('mt-'+t.id);
-    const card = $('card-'+t.id);
-    if (!cdEl) return;
-    cdEl.innerHTML = buildCd(t);
-    if (mtEl) mtEl.innerHTML = buildMeta(t);
-    if (card) {
-      const s = getStatus(t);
-      card.className = `task-card status-${s} ${t.done?'done':''}`;
-    }
+  ctTasks.forEach(t => {
+    const cd = $('ccd-'+t.id); const mt = $('cmt-'+t.id); const card = $('ccard-'+t.id);
+    if (!cd) return;
+    cd.innerHTML = buildCd(t);
+    if (mt) mt.innerHTML = buildCdMeta(t);
+    if (card) { const s=ctStatus(t); card.className=`task-card status-${s} ${t.done?'done':''}`; }
   });
-  // update summary counts quietly
-  const cnt = {future:0,soon:0,overdue:0,done:0};
-  tasks.forEach(t => cnt[getStatus(t)]++);
-  const sb = $('summary-bar');
-  if (sb) {
-    const vals = sb.querySelectorAll('.sum-val');
-    if (vals[0]) vals[0].textContent = tasks.length;
-    if (vals[1]) vals[1].textContent = cnt.future+cnt.soon;
-    if (vals[2]) vals[2].textContent = cnt.soon;
-    if (vals[3]) vals[3].textContent = cnt.overdue;
-  }
 }, 1000);
 
-function addTask() {
-  const name = $('new-name').value.trim();
-  const date = $('new-date').value;
-  const time = $('new-time').value || '09:00';
-  if (!name || !date) { $('new-name').focus(); return; }
-  tasks.unshift({ id: Date.now(), name, date, time, done: false });
-  $('new-name').value = '';
-  $('new-date').value = new Date().toISOString().slice(0,10);
-  save(); render();
+// ══════════════════════════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════════════════════════
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  calSelectedDate = now.toISOString().slice(0,10);
+  renderCal();
 }
 
-function setFilter(f, btn) {
-  filter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
+window.calPrev = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); };
+window.calNext = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); };
+window.calToday = () => { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); calSelectedDate=n.toISOString().slice(0,10); renderCal(); };
+
+window.selectDay = (dateStr) => { calSelectedDate = dateStr; renderCal(); };
+
+function renderCal() {
+  const dows = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  $('cal-dow').innerHTML = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  $('cal-title').textContent = monthNames[calMonth] + ' ' + (calYear+543);
+
+  const today = new Date().toISOString().slice(0,10);
+  const first = new Date(calYear, calMonth, 1);
+  const last  = new Date(calYear, calMonth+1, 0);
+  const startDow = first.getDay();
+
+  // build events map
+  const evMap = {};
+  ctTasks.forEach(t => {
+    if (!evMap[t.date]) evMap[t.date] = [];
+    evMap[t.date].push({ type:'countdown', name:t.name, time:t.time, done:t.done, status:ctStatus(t) });
+  });
+  todos.forEach(t => {
+    if (t.dueDate) {
+      if (!evMap[t.dueDate]) evMap[t.dueDate] = [];
+      evMap[t.dueDate].push({ type:'todo', name:t.name, priority:t.priority, done:t.done });
+    }
+  });
+
+  let cells = '';
+  // prev month padding
+  for (let i = 0; i < startDow; i++) {
+    const d = new Date(calYear, calMonth, -startDow+i+1);
+    cells += dayCell(d.toISOString().slice(0,10), d.getDate(), true, today, evMap);
+  }
+  // this month
+  for (let d = 1; d <= last.getDate(); d++) {
+    const ds = `${calYear}-${pad(calMonth+1)}-${pad(d)}`;
+    cells += dayCell(ds, d, false, today, evMap);
+  }
+  // next month padding
+  const remaining = 42 - startDow - last.getDate();
+  for (let i = 1; i <= remaining; i++) {
+    const d = new Date(calYear, calMonth+1, i);
+    cells += dayCell(d.toISOString().slice(0,10), i, true, today, evMap);
+  }
+  $('cal-grid').innerHTML = cells;
+
+  // detail panel
+  const evs = evMap[calSelectedDate] || [];
+  const selDate = new Date(calSelectedDate+'T00:00:00');
+  $('cal-detail-title').textContent = selDate.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if (!evs.length) {
+    $('cal-events').innerHTML = `<div class="empty" style="padding:1rem;">ไม่มีกิจกรรมวันนี้</div>`;
+  } else {
+    $('cal-events').innerHTML = evs.map(e => {
+      const dot = e.type==='countdown'
+        ? (e.status==='overdue' ? 'overdue' : 'countdown')
+        : 'todo';
+      const dotColors = { countdown:'var(--lime)', overdue:'var(--red)', todo:'var(--blue)' };
+      const extra = e.type==='countdown' ? (e.time||'') : ({ high:'🔴', medium:'🟡', low:'🔵' }[e.priority]||'');
+      return `<div class="cal-event" style="${e.done?'opacity:0.4':''}">
+        <div class="cal-event-dot" style="background:${dotColors[dot]}"></div>
+        <div class="cal-event-name" style="${e.done?'text-decoration:line-through':''}">${esc(e.name)}</div>
+        <div class="cal-event-time">${extra}</div>
+      </div>`;
+    }).join('');
+  }
 }
 
-function toggleDone(id) {
-  const t = tasks.find(x => x.id===id);
-  if (t) { t.done = !t.done; save(); render(); }
+function dayCell(dateStr, dayNum, otherMonth, today, evMap) {
+  const isToday    = dateStr === today;
+  const isSelected = dateStr === calSelectedDate;
+  const evs = evMap[dateStr] || [];
+  const dots = evs.map(e => {
+    let cls = e.type==='todo' ? 'todo' : (e.status==='overdue' ? 'overdue' : 'countdown');
+    return `<div class="cal-dot ${cls}"></div>`;
+  }).join('');
+  const cls = [
+    'cal-day',
+    otherMonth ? 'other-month' : '',
+    isToday    ? 'today' : '',
+    isSelected ? 'selected' : '',
+  ].filter(Boolean).join(' ');
+  return `<div class="${cls}" onclick="selectDay('${dateStr}')">
+    <div class="cal-day-num">${dayNum}</div>
+    <div class="cal-dots">${dots}</div>
+  </div>`;
 }
 
-function del(id) {
-  tasks = tasks.filter(x => x.id!==id);
-  save(); render();
+// ══════════════════════════════════════════════════════════
+//  TO-DO
+// ══════════════════════════════════════════════════════════
+const SECTIONS = [
+  { key:'inbox',    label:'📥 Inbox' },
+  { key:'work',     label:'💼 งาน' },
+  { key:'personal', label:'🏠 ส่วนตัว' },
+];
+
+window.addTodo = async () => {
+  const name    = $('td-name').value.trim();
+  const note    = $('td-note').value.trim();
+  const priority= $('td-priority').value;
+  const section = $('td-section').value;
+  if (!name) { $('td-name').focus(); return; }
+  await addDoc(tdCol(), { name, note, priority, section, done:false, createdAt: Date.now() });
+  $('td-name').value = ''; $('td-note').value = '';
+};
+
+window.toggleTD = async (id) => {
+  const t = todos.find(x=>x.id===id);
+  if (t) await updateDoc(doc(db,'users',uid,'todos',id), { done:!t.done });
+};
+window.delTD = async (id) => { await deleteDoc(doc(db,'users',uid,'todos',id)); };
+
+function renderTD() {
+  const el = $('td-sections');
+  el.innerHTML = SECTIONS.map(sec => {
+    const items = todos.filter(t => (t.section||'inbox') === sec.key);
+    const done  = items.filter(t=>t.done).length;
+    const pct   = items.length ? Math.round((done/items.length)*100) : 0;
+    return `
+<div class="card">
+  <div class="todo-section-header">
+    <div class="todo-section-name">${sec.label}</div>
+    <div class="todo-count">${done}/${items.length}</div>
+  </div>
+  ${items.length === 0 ? `<div class="empty" style="padding:1rem 0;">ยังไม่มีงาน</div>` : ''}
+  ${items.map(t => `
+    <div class="todo-item ${t.done?'done-item':''}" id="tdi-${t.id}">
+      <div class="priority-dot p-${t.priority||'medium'}"></div>
+      <div class="chk ${t.done?'checked':''}" onclick="toggleTD('${t.id}')">${t.done?'✓':''}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="todo-text">${esc(t.name)}</div>
+        ${t.note?`<div class="todo-note">${esc(t.note)}</div>`:''}
+      </div>
+      <div class="todo-acts">
+        <button class="btn-icon del" onclick="delTD('${t.id}')">✕</button>
+      </div>
+    </div>
+  `).join('')}
+  ${items.length > 0 ? `<div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>` : ''}
+</div>`;
+  }).join('');
 }
 
-function toggleEdit(id) {
-  editId = editId===id ? null : id;
-  render();
-  if (editId) { const el=$('en-'+id); if(el){el.focus();el.select();} }
-}
-
-function saveEdit(id) {
-  const t = tasks.find(x => x.id===id);
-  if (!t) return;
-  const n = $('en-'+id).value.trim();
-  const d = $('ed-'+id).value;
-  const ti = $('et-'+id).value;
-  if (n)  t.name = n;
-  if (d)  t.date = d;
-  if (ti) t.time = ti;
-  editId = null;
-  save(); render();
-}
-
-render();
 </script>
 </body>
 </html>
