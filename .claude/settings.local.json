@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"d:/Timer/src/pages\")",
+      "Bash(mkdir -p \"d:/Timer/src/components\")"
+    ]
+  }
+}
